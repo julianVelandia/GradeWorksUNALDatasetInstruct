@@ -1,20 +1,11 @@
-from openai import OpenAI
-import re
 import json
 import os
+import re
 
-DATASET_INPUT_FILE = "dataset.json"
-DATASET_OUTPUT_FILE = "dataset_finetuning.json"
-MAX_RETRIES = 3
+from openai import OpenAI
 
-PROMPT_TEMPLATE = (
-    "Formule una pregunta relevante sobre el siguiente fragmento (En la pregunta debe ir toda la "
-    "información para entender la pregunta, agrega contexto a la pregunta si es necesario) y responda de forma breve. "
-    "(Responde en el formato, sin texto adicional)"
-    "Formato: PREGUNTA: [pregunta aquí] RESPUESTA: [respuesta aquí]. Fragmento: '{fragmento}'"
-)
-
-client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
+from GradeWorksUNALDatasetInstruct.constants import DATASET_INPUT_FILE, DATASET_OUTPUT_FILE, MAX_RETRIES, \
+    PROMPT_TEMPLATE
 
 
 def clean_raw_content(raw_content):
@@ -48,9 +39,9 @@ def generate_prompt_completion(chunk, model="model-identifier"):
             answer_part = response.split("RESPUESTA:")[1].strip()
             return {"prompt": question_part, "completion": answer_part, "fragment": chunk}
 
-        print(f"Reintento {attempt}/{MAX_RETRIES} fallido para el fragmento: {chunk}")
+        print(f"Reintento {attempt}/{MAX_RETRIES}, fragmento: {chunk}")
 
-    print(f"Formato incorrecto después de {MAX_RETRIES} intentos para el fragmento: {chunk}")
+    print(f"Error fragmento: {chunk}")
     return None
 
 
@@ -98,8 +89,6 @@ def process_and_save(data):
                     print(f'Chunk ya procesado, {i}')
                     continue
 
-
-
                 result = generate_prompt_completion(chunk)
                 if result:
                     save_entry(result)
@@ -116,4 +105,5 @@ def run():
     process_and_save(data)
 
 
+client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
 run()
