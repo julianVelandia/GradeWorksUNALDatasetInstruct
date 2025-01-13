@@ -6,7 +6,7 @@ Link repository: https://repositorio.unal.edu.co/handle/unal/5
 
 Dataset kaggle: https://www.kaggle.com/datasets/juliancamilovelandia/gradeworksunaldatasetinstruct
 
-Dataset HuggingFace:
+Dataset HuggingFace: https://huggingface.co/datasets/JulianVelandia/unal-repository-dataset-instruct
 
 This dataset is a { question : answer } version of the dataset of the degree works of the Universidad Nacional de Colombia, Ideal for fine tuning work on language models
 
@@ -20,5 +20,17 @@ This dataset is a { question : answer } version of the dataset of the degree wor
   }
 ]
 ```
+The transform process is as follows
 
 ![image](https://github.com/user-attachments/assets/10d5c10d-0b1a-4eb6-bd95-c52303d80e7b)
+
+**Main Statistics**:
+- Total records: **16,700**.
+- Average prompt length: **142.98 characters**.
+- Average completion length: **148.80 characters**.
+- Most frequent words in prompts:  
+  - **de**: 26,715  
+  - **la**: 18,616  
+  - **en**: 17,742  
+  - **el**: 16,711  
+  - **y**: 10,559  
