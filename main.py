@@ -1,109 +1,44 @@
-import json
-import os
-import re
-
 from openai import OpenAI
 
-from GradeWorksUNALDatasetInstruct.constants import DATASET_INPUT_FILE, DATASET_OUTPUT_FILE, MAX_RETRIES, \
-    PROMPT_TEMPLATE
-
-
-def clean_raw_content(raw_content):
-    """Limpia el contenido, elimina caracteres especiales y recorta las primeras 5000 y las últimas 12000 palabras."""
-    cleaned_content = re.sub(r'[-\n]+', ' ', raw_content).strip()
-    words = cleaned_content.split()
-    trimmed_content = words[5000:len(words) - 12000] if len(words) > 17000 else words[5000:]
-    return ' '.join(trimmed_content)
-
-
-def split_content_into_chunks(content, n=150):
-    """Divide el contenido en fragmentos de n palabras cada uno."""
-    words = content.split()
-    return [' '.join(words[i:i + n]) for i in range(0, len(words), n)]
-
-
-def generate_prompt_completion(chunk, model="model-identifier"):
-    """Genera el prompt, obtiene la completion y verifica el formato."""
-    completion_prompt = PROMPT_TEMPLATE.format(fragmento=chunk)
-
-    for attempt in range(1, MAX_RETRIES + 1):
-        completion = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": completion_prompt}],
-            temperature=0.2
-        )
-        response = completion.choices[0].message.content.strip()
-
-        if response.startswith("PREGUNTA:") and "RESPUESTA:" in response:
-            question_part = response.split("PREGUNTA:")[1].split("RESPUESTA:")[0].strip()
-            answer_part = response.split("RESPUESTA:")[1].strip()
-            return {"prompt": question_part, "completion": answer_part, "fragment": chunk}
-
-        print(f"Reintento {attempt}/{MAX_RETRIES}, fragmento: {chunk}")
-
-    print(f"Error fragmento: {chunk}")
-    return None
-
-
-def load_existing_data():
-    """Carga el dataset de salida si ya existe y contiene datos, y lo devuelve como lista."""
-    if os.path.exists(DATASET_OUTPUT_FILE):
-        with open(DATASET_OUTPUT_FILE, "r", encoding="utf-8") as file:
-            print(file)
-            data = []
-            for line in file:
-                while not line.endswith('}'):
-                    line = line[:-1]
-                print('line', line)
-
-                if line.strip():
-                    print('type', type(line))
-
-                    data.append(json.loads(line))
-            print(3)
-            return data
-    return []
-
-
-def save_entry(entry):
-    """Guarda un nuevo registro en el archivo de salida, cada uno en una línea separada."""
-    with open(DATASET_OUTPUT_FILE, "a", encoding="utf-8") as file:
-        file.write(json.dumps(entry, ensure_ascii=False) + ", \n")
-    print(f"Entrada guardada: {entry}")
+from GradeWorksUNALDatasetInstruct.utils.dataset_loader import load_remote_dataset
+from constants import DATASET_OUTPUT_FILE, MAX_RETRIES, PROMPT_TEMPLATE, OUTPUT_DATASET_HUGGINGFACE, HUGGINGFACE_TOKEN, \
+    USER_HUGGING_FACE, PATH_RAW_DATASET_HUGGINGFACE
+from services.openai_service import generate_prompt_completion
+from utils.file_handler import load_existing_data, save_entry, upload_dataset_to_huggingface
+from utils.text_processor import clean_raw_content, split_content_into_chunks
 
 
 def process_and_save(data):
-    """Procesa cada registro del dataset y guarda el resultado incrementalmente."""
-    processed_data = load_existing_data()
+    processed_data = load_existing_data(DATASET_OUTPUT_FILE)
     processed_fragments = {item["fragment"] for item in processed_data}
-    i = 0
+    raw_data = data[-1]
 
-    for entry in data.values():
-        if "raw_content" in entry:
-            clean_content = clean_raw_content(entry["raw_content"])
-            chunks = split_content_into_chunks(clean_content)
+    for _, value in raw_data.items():
 
-            for chunk in chunks:
-                i += 1
-                if any(fragment in chunk or chunk in fragment for fragment in processed_fragments):
-                    print(f'Chunk ya procesado, {i}')
-                    continue
+        clean_content = clean_raw_content(value)
+        chunks = split_content_into_chunks(clean_content)
 
-                result = generate_prompt_completion(chunk)
-                if result:
-                    save_entry(result)
-                    processed_fragments.add(chunk)
-                    print(f"Procesado y guardado: {result}")
-                else:
-                    print(f"Saltando fragmento por errores de formato: {chunk}")
+        for chunk in chunks:
+            if chunk in processed_fragments:
+                continue
+            result = generate_prompt_completion(client, chunk, PROMPT_TEMPLATE, MAX_RETRIES)
+            if result:
+                save_entry(DATASET_OUTPUT_FILE, result)
+                processed_fragments.add(chunk)
 
 
 def run():
-    """Entry point: carga el dataset y procesa los datos de forma incremental."""
-    with open(DATASET_INPUT_FILE, "r", encoding="utf-8") as file:
-        data = json.load(file)
-    process_and_save(data)
+    #dataset = load_remote_dataset(PATH_RAW_DATASET_HUGGINGFACE)
+    #data = [row for row in dataset]
+    #process_and_save(data)
+    upload_dataset_to_huggingface(
+        output_file=DATASET_OUTPUT_FILE,
+        repo_name=OUTPUT_DATASET_HUGGINGFACE,
+        token=HUGGINGFACE_TOKEN,
+        org=USER_HUGGING_FACE,
+    )
 
 
 client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
-run()
+if __name__ == "__main__":
+    run()

@@ -1,5 +1,8 @@
-DATASET_INPUT_FILE = "dataset.json"
-DATASET_OUTPUT_FILE = "data/finetuning_dataset.json"
+PATH_RAW_DATASET_HUGGINGFACE = "JulianVelandia/unal-repository-dataset"
+DATASET_OUTPUT_FILE = "finetuning_dataset.json"
+OUTPUT_DATASET_HUGGINGFACE = "unal-repository-dataset-instruct"
+HUGGINGFACE_TOKEN = ":)"
+USER_HUGGING_FACE = "JulianVelandia"
 MAX_RETRIES = 3
 
 PROMPT_TEMPLATE = (

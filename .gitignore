@@ -122,5 +122,5 @@ desktop.ini
 *.temp
 *.swp
 
-data/finetuning_dataset.json
-data/dataset.json
+finetuning_dataset.json
+dataset.json
