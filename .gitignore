@@ -123,4 +123,6 @@ desktop.ini
 *.swp
 
 finetuning_dataset.json
+finetuning_dataset_train.json
+finetuning_dataset_test.json
 dataset.json
