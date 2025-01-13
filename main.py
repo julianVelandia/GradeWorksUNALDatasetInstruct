@@ -1,7 +1,9 @@
 from openai import OpenAI
 
 from GradeWorksUNALDatasetInstruct.utils.dataset_loader import load_remote_dataset
-from constants import DATASET_OUTPUT_FILE, MAX_RETRIES, PROMPT_TEMPLATE, OUTPUT_DATASET_HUGGINGFACE, HUGGINGFACE_TOKEN, \
+from GradeWorksUNALDatasetInstruct.utils.eda import eda
+from constants import DATASET_OUTPUT_FILE, MAX_RETRIES_LLM, PROMPT_TEMPLATE, OUTPUT_DATASET_HUGGINGFACE, \
+    HUGGINGFACE_TOKEN, \
     USER_HUGGING_FACE, PATH_RAW_DATASET_HUGGINGFACE
 from services.openai_service import generate_prompt_completion
 from utils.file_handler import load_existing_data, save_entry, upload_dataset_to_huggingface
@@ -21,22 +23,23 @@ def process_and_save(data):
         for chunk in chunks:
             if chunk in processed_fragments:
                 continue
-            result = generate_prompt_completion(client, chunk, PROMPT_TEMPLATE, MAX_RETRIES)
+            result = generate_prompt_completion(client, chunk, PROMPT_TEMPLATE, MAX_RETRIES_LLM)
             if result:
                 save_entry(DATASET_OUTPUT_FILE, result)
                 processed_fragments.add(chunk)
 
 
 def run():
-    #dataset = load_remote_dataset(PATH_RAW_DATASET_HUGGINGFACE)
-    #data = [row for row in dataset]
-    #process_and_save(data)
+    dataset = load_remote_dataset(PATH_RAW_DATASET_HUGGINGFACE)
+    data = [row for row in dataset]
+    process_and_save(data)
     upload_dataset_to_huggingface(
         output_file=DATASET_OUTPUT_FILE,
         repo_name=OUTPUT_DATASET_HUGGINGFACE,
         token=HUGGINGFACE_TOKEN,
         org=USER_HUGGING_FACE,
     )
+    eda(DATASET_OUTPUT_FILE)
 
 
 client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")

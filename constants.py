@@ -3,7 +3,7 @@ DATASET_OUTPUT_FILE = "finetuning_dataset.json"
 OUTPUT_DATASET_HUGGINGFACE = "unal-repository-dataset-instruct"
 HUGGINGFACE_TOKEN = ":)"
 USER_HUGGING_FACE = "JulianVelandia"
-MAX_RETRIES = 3
+MAX_RETRIES_LLM = 3
 
 PROMPT_TEMPLATE = (
     "Formule una pregunta relevante sobre el siguiente fragmento (En la pregunta debe ir toda la "
