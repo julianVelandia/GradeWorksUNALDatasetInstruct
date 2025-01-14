@@ -23,7 +23,7 @@ This dataset is a { question : answer } version of the dataset of the degree wor
 ```
 The transform process is as follows
 
-![image](https://github.com/user-attachments/assets/10d5c10d-0b1a-4eb6-bd95-c52303d80e7b)
+![image](https://github.com/user-attachments/assets/a2ebc554-ed15-48f0-a171-ba20147800e2)
 
 **Main Statistics**:
 - Total records: **16,700**.
